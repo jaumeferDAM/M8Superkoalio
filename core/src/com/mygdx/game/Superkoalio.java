@@ -22,6 +22,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
+import com.mygdx.game.Objects.Koala;
 
 /** Super Mario Brothers-like very basic platformer, using a tile map built using <a href="http://www.mapeditor.org/">Tiled</a> and a
  * tileset and sprites by <a href="http://www.vickiwenderlich.com/">Vicky Wenderlich</a></p>
@@ -31,7 +32,7 @@ import com.badlogic.gdx.utils.Pool;
 public class Superkoalio extends ApplicationAdapter {
 	/** The player character, has state and state time, */
 	//Prueba de push1
-	static class Koala {
+	public static class Koala {
 		static float WIDTH;
 		static float HEIGHT;
 		static float MAX_VELOCITY = 10f;
@@ -42,12 +43,12 @@ public class Superkoalio extends ApplicationAdapter {
 			Standing, Walking, Jumping
 		}
 
-		final Vector2 position = new Vector2();
-		final Vector2 velocity = new Vector2();
-		State state = State.Walking;
-		float stateTime = 0;
+		public final Vector2 position = new Vector2();
+		public final Vector2 velocity = new Vector2();
+		public com.mygdx.game.Objects.Koala.State state = State.Walking;
+		public float stateTime = 0;
 		boolean facesRight = true;
-		boolean grounded = false;
+		public boolean grounded = false;
 	}
 
 	private TiledMap map;
@@ -132,12 +133,12 @@ public class Superkoalio extends ApplicationAdapter {
 	}
 
 	private void updateKoala (float deltaTime) {
-		if (deltaTime == 0) return;
+        if (deltaTime == 0) return;
 
-		if (deltaTime > 0.1f)
-			deltaTime = 0.1f;
+        if (deltaTime > 0.1f)
+            deltaTime = 0.1f;
 
-		koala.stateTime += deltaTime;
+        koala.stateTime += deltaTime;
 
 		// check input and apply to velocity & state
 		if ((Gdx.input.isKeyPressed(Keys.SPACE) || isTouched(0.5f, 1)) && koala.grounded) {
