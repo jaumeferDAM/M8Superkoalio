@@ -1,5 +1,6 @@
 package com.mygdx.game.Screens;
 
+import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -24,7 +26,7 @@ import com.mygdx.game.Superkoalio;
  * Created by Jaume on 02/04/2017.
  */
 
-public class GameScreen implements Screen {
+public class GameScreen extends ApplicationAdapter implements Screen{
 
 
     private TiledMap map;
@@ -34,7 +36,7 @@ public class GameScreen implements Screen {
     private Animation<TextureRegion> stand;
     private Animation<TextureRegion> walk;
     private Animation<TextureRegion> jump;
-    private Superkoalio.Koala koala;
+    private Koala koala;
     private Pool<Rectangle> rectPool = new Pool<Rectangle>() {
         @Override
         protected Rectangle newObject () {
@@ -47,6 +49,38 @@ public class GameScreen implements Screen {
 
     private boolean debug = false;
     private ShapeRenderer debugRenderer;
+
+    @Override
+    public void create () {
+        // load the koala frames, split them, and assign them to Animations
+        koalaTexture = new Texture("koalio.png");
+        TextureRegion[] regions = TextureRegion.split(koalaTexture, 18, 26)[0];
+        stand = new Animation(0, regions[0]);
+        jump = new Animation(0, regions[1]);
+        walk = new Animation(0.15f, regions[2], regions[3], regions[4]);
+        walk.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+
+        // figure out the width and height of the koala for collision
+        // detection and rendering by converting a koala frames pixel
+        // size into world units (1 unit == 16 pixels)
+        Koala.WIDTH = 1 / 16f * regions[0].getRegionWidth();
+        Koala.HEIGHT = 1 / 16f * regions[0].getRegionHeight();
+
+        // load the map, set the unit scale to 1/16 (1 unit == 16 pixels)
+        map = new TmxMapLoader().load("level1.tmx");
+        renderer = new OrthogonalTiledMapRenderer(map, 1 / 16f);
+
+        // create an orthographic camera, shows us 30x20 units of the world
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, 30, 20);
+        camera.update();
+
+        // create the Koala we want to move around the world
+        koala = new Koala();
+        koala.position.set(20, 20);
+
+        debugRenderer = new ShapeRenderer();
+    }
 
     @Override
     public void show() {
@@ -123,7 +157,7 @@ public class GameScreen implements Screen {
             startY = endY = (int)(koala.position.y + koala.velocity.y);
         }
         startX = (int)(koala.position.x);
-        endX = (int)(koala.position.x + .Koala.WIDTH);
+        endX = (int)(koala.position.x + this.koala.WIDTH);
         getTiles(startX, startY, endX, endY, tiles);
         koalaRect.y += koala.velocity.y;
         for (Rectangle tile : tiles) {
@@ -158,7 +192,7 @@ public class GameScreen implements Screen {
 
         if (koala.position.y <= 0)
         {
-            Gdx.app.log ("muerte", "Koala Dead");
+            koala.position.set(50,0);
         }
 
     }
@@ -175,6 +209,22 @@ public class GameScreen implements Screen {
 
     }
 
+    private void getTiles (int startX, int startY, int endX, int endY, Array<Rectangle> tiles) {
+        TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get("walls");
+        rectPool.freeAll(tiles);
+        tiles.clear();
+        for (int y = startY; y <= endY; y++) {
+            for (int x = startX; x <= endX; x++) {
+                TiledMapTileLayer.Cell cell = layer.getCell(x, y);
+                if (cell != null) {
+                    Rectangle rect = rectPool.obtain();
+                    rect.set(x, y, 1, 1);
+                    tiles.add(rect);
+                }
+            }
+        }
+    }
+
     private void renderKoala (float deltaTime) {
         // based on the koala state, get the animation frame
         TextureRegion frame = null;
@@ -187,7 +237,7 @@ public class GameScreen implements Screen {
                 break;
             case Jumping:
                 frame = jump.getKeyFrame(koala.stateTime);
-                break;
+            break;
         }
     }
 
@@ -214,7 +264,30 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        // clear the screen
+        Gdx.gl.glClearColor(0.7f, 0.7f, 1.0f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // get the delta time
+        float deltaTime = Gdx.graphics.getDeltaTime();
+
+        // update the koala (process input, collision detection, position update)
+        updateKoala(deltaTime);
+
+        // let the camera ºllow the koala, x-axis only
+        camera.position.x = koala.position.x-100;
+        camera.update();
+
+        // set the TiledMapRenderer view based on what the
+        // camera sees, and render the map
+        renderer.setView(camera);
+        renderer.render();
+
+        // render the koala
+        renderKoala(deltaTime);
+
+        // render debug rectangles
+        if (debug) renderDebug();
     }
 
     @Override

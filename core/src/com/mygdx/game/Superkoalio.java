@@ -33,7 +33,7 @@ public class Superkoalio extends ApplicationAdapter {
 	/** The player character, has state and state time, */
 	//Prueba de push1
 	public static class Koala {
-		static float WIDTH;
+		public static float WIDTH;
 		static float HEIGHT;
 		static float MAX_VELOCITY = 10f;
 		static float JUMP_VELOCITY = 40f;
@@ -45,7 +45,7 @@ public class Superkoalio extends ApplicationAdapter {
 
 		public final Vector2 position = new Vector2();
 		public final Vector2 velocity = new Vector2();
-		public com.mygdx.game.Objects.Koala.State state = State.Walking;
+		public State state = State.Walking;
 		public float stateTime = 0;
 		boolean facesRight = true;
 		public boolean grounded = false;
@@ -116,8 +116,8 @@ public class Superkoalio extends ApplicationAdapter {
 		// update the koala (process input, collision detection, position update)
 		updateKoala(deltaTime);
 
-		// let the camera follow the koala, x-axis only
-		camera.position.x = koala.position.x;
+		// let the camera ºllow the koala, x-axis only
+		camera.position.x = koala.position.x +5;
 		camera.update();
 
 		// set the TiledMapRenderer view based on what the
@@ -245,7 +245,7 @@ public class Superkoalio extends ApplicationAdapter {
 
 		if (koala.position.y <= 0)
 		{
-			Gdx.app.log ("muerte", "Koala Dead");
+			koala.position.set(50,0);
 		}
 
 	}
