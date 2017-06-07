@@ -117,7 +117,7 @@ public class Superkoalio extends ApplicationAdapter {
 		updateKoala(deltaTime);
 
 		// let the camera ºllow the koala, x-axis only
-		camera.position.x = koala.position.x +5;
+		camera.position.x = koala.position.x;
 		camera.update();
 
 		// set the TiledMapRenderer view based on what the
@@ -129,7 +129,7 @@ public class Superkoalio extends ApplicationAdapter {
 		renderKoala(deltaTime);
 
 		// render debug rectangles
-		if (debug) renderDebug();
+//		if (debug) renderDebug();
 	}
 
 	private void updateKoala (float deltaTime) {
@@ -245,7 +245,7 @@ public class Superkoalio extends ApplicationAdapter {
 
 		if (koala.position.y <= 0)
 		{
-			koala.position.set(50,0);
+			koala.position.set(50,20);
 		}
 
 	}
